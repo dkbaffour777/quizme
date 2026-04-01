@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>QuizMe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --card: #1e293b;
+            --text: #e5e7eb;
+            --accent: #6366f1;
+            --surface: #334155;
+            --border: #475569;
+            --good: #15803d;
+            --bad: #b91c1c;
+        }
+
+        body.light {
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #111827;
+            --surface: #e5e7eb;
+            --border: #cbd5f5;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, Arial, sans-serif;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 1.6em;
+            font-weight: 700
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.6em;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        /* Layout */
+        .section {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 18px;
+            margin-bottom: 26px;
+        }
+
+        .separator {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        /* Upload */
+        .drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 16px;
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            background: rgba(99, 102, 241, .15)
+        }
+
+        /* Menus */
+        .menu-bar {
+            display: flex;
+            gap: 16px
+        }
+
+        .menu {
+            position: relative
+        }
+
+        .menu-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 220px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+            z-index: 10;
+        }
+
+        .menu-content button {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--text);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .menu-content button:hover {
+            background: var(--surface)
+        }
+
+        /* Flashcards */
+        .flashcard-wrap {
+            display: flex;
+            justify-content: center;
+            perspective: 1200px;
+            margin: 30px 0;
+        }
+
+        .card {
+            min-width: 300px;
+            min-height: 180px;
+            max-width: 520px;
+            padding: 32px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: .6s;
+            cursor: pointer;
+        }
+
+        .card.flip {
+            transform: rotateY(180deg)
+        }
+
+        .face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 28px;
+            border-radius: 22px;
+            color: white;
+        }
+
+        .front {
+            background: linear-gradient(135deg, #6366f1, #3b82f6)
+        }
+
+        .back {
+            background: linear-gradient(135deg, #1e3a8a, #020617);
+            transform: rotateY(180deg);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        /* Table */
+        .quizlet-table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .quizlet-table tr {
+            border-bottom: 1px solid var(--border)
+        }
+
+        .quizlet-table td {
+            padding: 18px
+        }
+
+        .quizlet-table td:first-child {
+            width: 30%;
+            font-weight: 600
+        }
+
+        /* Match Game */
+        .match {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        .col {
+            width: 48%
+        }
+
+        .match-item {
+            background: var(--surface);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .match-slot {
+            border: 2px dashed var(--accent);
+            cursor: pointer
+        }
+
+        .match-item.disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .correct {
+            background: var(--good) !important;
+            color: white
+        }
+
+        .wrong {
+            background: var(--bad) !important;
+            color: white
+        }
+
+        /* MC Quiz */
+        .mc-question {
+            margin-bottom: 20px
+        }
+
+        .choice {
+            background: var(--surface);
+            padding: 12px;
+            border-radius: 10px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        .choice.selected {
+            outline: 3px solid var(--accent)
+        }
+
+        .choice.correct {
+            background: var(--good);
+            color: white
+        }
+
+        .choice.wrong {
+            background: var(--bad);
+            color: white
+        }
+
+        .mc-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .muted {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        #formatInfo {
+            background: var(--surface);
+            border-radius: 12px;
+        }
+
+        @media(max-width:700px) {
+            .col {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">📘 QuizMe</div>
+        <button id="themeBtn" class="theme-toggle">🌙</button>
+    </div>
+
+    <div class="section stack">
+        <h3>Upload Study File</h3>
+        <div class="drop-zone" id="dropZone">
+            Drag & Drop any text-based file or click
+            <input type="file" id="fileInput" hidden>
+        </div>
+        <div id="uploadStatus">No file loaded</div>
+
+        <button class="btn" onclick="toggleFormatInfo()">ℹ️ File format help</button>
+
+        <div id="formatInfo" class="section hidden" style="margin-top:12px">
+            <pre id="formatText" style="white-space: pre-wrap; font-family: inherit;">
+                File format guide
+
+                Upload a plain text (.txt) file with one study item per line.
+
+                You can mix flashcards and multiple-choice questions in the same file.
+
+                Flashcards / Matching
+                Use this format for definitions and matching games:
+
+                Term : Definition
+
+                Example:
+                Photosynthesis : Process plants use to make food
+
+                Multiple Choice
+                Use this format for quizzes:
+
+                Question | Option A | Option B* | Option C | Option D
+
+                Example:
+                What is the capital of France? | Paris* | Rome | Berlin | Madrid
+
+                Rules to remember:
+                • Put only one card or question on each line
+                • Add * at the end of the correct answer
+                • Write “All of the above” exactly like that if you use it
+                • Keep “All of the above” as the last option
+                • Don’t split one question across multiple lines
+            </pre>
+
+            <button class="btn" onclick="copyFormatInfo()">📋 Copy instructions</button>
+        </div>
+    </div>
+
+    <div class="section stack">
+        <div class="menu-bar">
+            <div class="menu">
+                <button class="btn" onclick="toggleMenu('learnMenu')">Learn ▾</button>
+                <div id="learnMenu" class="menu-content hidden">
+                    <button onclick="selectFeature('Learning','Flashcards')">Flashcards</button>
+                    <button onclick="selectFeature('Learning','Table')">Term Table</button>
+                </div>
+            </div>
+            <div class="menu">
+                <button class="btn" onclick="toggleMenu('practiceMenu')">Practice ▾</button>
+                <div id="practiceMenu" class="menu-content hidden">
+                    <button onclick="selectFeature('Practice','Match')">Match Game</button>
+                    <button onclick="selectFeature('Practice','MC')">Multiple Choice</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="separator"></div>
+        <h2 id="modeHeading">Upload a file to begin</h2>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        /* ===== Theme ===== */
+        const themeBtn = document.getElementById("themeBtn");
+        function updateThemeIcon() {
+            themeBtn.textContent = document.body.classList.contains("light") ? "🌙" : "☀️";
+        }
+        themeBtn.onclick = () => {
+            document.body.classList.toggle("light");
+            updateThemeIcon();
+        };
+        updateThemeIcon();
+
+        /* ===== Menus ===== */
+        function toggleMenu(id) {
+            ["learnMenu", "practiceMenu"].forEach(m => {
+                if (m !== id) document.getElementById(m).classList.add("hidden");
+            });
+            document.getElementById(id).classList.toggle("hidden");
+        }
+
+        /* ===== Upload ===== */
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const uploadStatus = document.getElementById("uploadStatus");
+
+        let cards = [], index = 0, termFirst = true, fileLoaded = false, uploadedFileName = "";
+
+        dropZone.onclick = () => fileInput.click();
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add("dragover"); };
+        dropZone.ondragleave = () => dropZone.classList.remove("dragover");
+        dropZone.ondrop = e => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            loadFile(e.dataTransfer.files[0]);
+        };
+        fileInput.onchange = e => loadFile(e.target.files[0]);
+
+        function loadFile(file) {
+            uploadedFileName = file.name;
+            const r = new FileReader();
+            r.onload = () => parseFile(r.result);
+            r.readAsText(file);
+        }
+        function parseFile(text) {
+            cards = [];
+
+            text.trim().split("\n").forEach(line => {
+                const cleaned = line.trim();
+                if (!cleaned) return;
+
+                // ✅ Multiple-choice question (pipe-separated)
+                if (cleaned.includes("|")) {
+                    const parts = cleaned.split("|").map(p => p.trim());
+                    const question = parts[0];
+
+                    const options = [];
+                    const correct = [];
+
+                    parts.slice(1).forEach(opt => {
+                        if (opt.endsWith("*")) {
+                            const value = opt.slice(0, -1).trim();
+                            options.push(value);
+                            correct.push(value);
+                        } else {
+                            options.push(opt);
+                        }
+                    });
+
+                    cards.push({
+                        id: crypto.randomUUID(),
+                        type: "mc",
+                        question,
+                        term: null,
+                        def: null,
+                        options,
+                        correct
+                    });
+
+                } else {
+                    // ✅ Simple term / definition
+                    const p = cleaned.split(/[,|:\-]/);
+                    if (p.length < 2) return;
+
+                    cards.push({
+                        id: crypto.randomUUID(),
+                        type: "simple",
+                        question: p[0].trim(),
+                        term: p[0].trim(),
+                        def: p.slice(1).join(" ").trim(),
+                        options: null,
+                        correct: []
+                    });
+                }
+            });
+
+            if (cards.length) {
+                fileLoaded = true;
+                uploadStatus.textContent = `✅ ${uploadedFileName} — ${cards.length} items loaded`;
+                selectFeature("Learning", "Flashcards");
+            }
+        }
+
+        function toggleFormatInfo() {
+            document.getElementById("formatInfo").classList.toggle("hidden");
+        }
+
+        function copyFormatInfo() {
+            const text = document.getElementById("formatText").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("File format instructions copied.");
+            });
+        }
+
+        // Decide learning content
+        function getLearningContent(card) {
+            // Simple cards: unchanged
+            if (card.type === "simple") {
+                return card.def;
+            }
+
+            const questionText = card.question.toLowerCase();
+            const isNegative = /\b(not|except)\b/i.test(card.question);
+
+            const hasAllAbove = card.options.some(
+                o => o.toLowerCase() === "all of the above"
+            );
+
+            const allAboveCorrect = card.correct.some(
+                c => c.toLowerCase() === "all of the above"
+            );
+
+            // ✅ Case 1: Negative questions (NOT / EXCEPT)
+            if (isNegative) {
+                return card.options
+                    .filter(opt => !card.correct.includes(opt))
+                    .join("<br>");
+            }
+
+            // ✅ Case 2: All of the above is correct
+            if (hasAllAbove && allAboveCorrect) {
+                return card.options
+                    .filter(o => o.toLowerCase() !== "all of the above")
+                    .join("<br>");
+            }
+
+            // ✅ Case 3: Normal MC
+            return card.correct.join("<br>");
+        }
+
+        function getLearningQuestion(card) {
+            if (card.type !== "mc") {
+                return card.term;
+            }
+
+            // Remove NOT / EXCEPT (case-insensitive, word boundaries)
+            return card.question.replace(/\b(not|except)\b/gi, "").replace(/\s+/g, " ").trim();
+        }
+
+        // Weighted selection - 
+        function selectPracticeSet(allCards, limit = 14) {
+            // Sort by least seen first
+            const sorted = [...allCards].sort((a, b) =>
+                (practiceHistory.seen.get(a.id) || 0) -
+                (practiceHistory.seen.get(b.id) || 0)
+            );
+
+            // Shuffle lightly to avoid predictability
+            const chosen = shuffleArray(sorted).slice(0, limit);
+
+            // Record usage
+            chosen.forEach(card => {
+                practiceHistory.seen.set(
+                    card.id,
+                    (practiceHistory.seen.get(card.id) || 0) + 1
+                );
+            });
+
+            return chosen;
+        }
+
+        /* ===== Mode Rendering ===== */
+        const content = document.getElementById("content");
+        const heading = document.getElementById("modeHeading");
+
+        // ✅ Practice tracking (per session)
+        let practiceHistory = {
+            seen: new Map()  // card.id -> times practiced
+        };
+
+        // ✅ Practice coverage & overlap tracking
+        const practiceState = {
+            mc: {
+                seen: new Set(),       // ids seen across all sessions
+                previous: []           // ids from immediately previous session
+            },
+            match: {
+                seen: new Set(),
+                previous: []
+            }
+        };
+
+        function updatePracticeProgress(modeKey, totalCount) {
+            const seenCount = practiceState[modeKey].seen.size;
+            const el = document.getElementById(
+                modeKey === "mc" ? "mcProgress" : "matchProgress"
+            );
+
+            if (!el) return;
+
+            el.textContent = `Practice Progress: ${seenCount} / ${totalCount} items covered`;
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+
+        function resetMC() {
+            clearInterval(mcTimer);
+            mcTimer = null;
+
+            mcStarted = false;
+            mcGraded = false;
+            mcRunning = false;
+            mcIdx = 0;
+            mcAnswers = {};
+            mcQuestions = [];
+            mcTimeLeft = 0;
+        }
+
+        function resetMatch() {
+            clearInterval(matchTimer);
+            matchTimer = null;
+
+            graded = false;
+            matchRunning = false;
+            matches = {};
+            usedDefs.clear();
+            matchTimeLeft = 0;
+        }
+
+        function shuffleArray(arr) {
+            return arr
+                .map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+        }
+
+        function moveAllOfTheAboveLast(options) {
+            const idx = options.findIndex(
+                o => o.toLowerCase() === "all of the above"
+            );
+
+            if (idx === -1) return options;
+
+            const reordered = [...options];
+            const [allAbove] = reordered.splice(idx, 1);
+            reordered.push(allAbove);
+
+            return reordered;
+        }
+
+        function updateMCNavButtons() {
+            const prevBtn = document.getElementById("mcPrevBtn");
+            const nextBtn = document.getElementById("mcNextBtn");
+
+            if (!prevBtn || !nextBtn) return;
+
+            prevBtn.disabled = mcIdx === 0;
+            nextBtn.disabled = mcIdx === mcQuestions.length - 1;
+        }
+
+        function selectPracticeSetStrict(allCards, modeKey, limit = 14, maxOverlap = 3) {
+            const state = practiceState[modeKey];
+
+            // Split pools
+            const unseen = allCards.filter(c => !state.seen.has(c.id));
+            const seenNotPrevious = allCards.filter(
+                c => state.seen.has(c.id) && !state.previous.includes(c.id)
+            );
+            const previous = allCards.filter(c => state.previous.includes(c.id));
+
+            const selection = [];
+
+            // 1️⃣ Take unseen first (guarantees coverage)
+            selection.push(...shuffleArray(unseen));
+
+            // 2️⃣ Then seen-but-not-previous
+            if (selection.length < limit) {
+                selection.push(...shuffleArray(seenNotPrevious));
+            }
+
+            // 3️⃣ Then allow up to maxOverlap from previous session
+            if (selection.length < limit) {
+                selection.push(...shuffleArray(previous).slice(0, maxOverlap));
+            }
+
+            const finalSet = selection.slice(0, limit);
+
+            // ✅ Update tracking
+            finalSet.forEach(c => state.seen.add(c.id));
+            state.previous = finalSet.map(c => c.id);
+
+            return finalSet;
+        }
+
+        function selectFeature(mode, type) {
+            // ⚠️ Navigation guard
+            if (mcRunning || matchRunning) {
+                if (!confirm("⚠️ You have an active quiz. Leaving will reset your progress. Continue?")) {
+                    return;
+                }
+            }
+
+            document.getElementById("learnMenu").classList.add("hidden");
+            document.getElementById("practiceMenu").classList.add("hidden");
+
+            // ✅ ALWAYS reset timed/interactive modes when navigating
+            resetMC();
+            resetMatch();
+
+            if (!fileLoaded) {
+                heading.textContent = "Upload a file to begin";
+                content.innerHTML = "";
+                return;
+            }
+
+            heading.textContent = `${mode} • ${type === "MC" ? "Multiple Choice" :
+                type === "Match" ? "Match Game" :
+                    type === "Table" ? "Term Table" : "Flashcards"
+                }`;
+
+            if (type === "Flashcards") renderFlashcards();
+            if (type === "Table") renderTable();
+            if (type === "Match") renderMatchGame();
+            if (type === "MC") renderMCQuiz();
+        }
+
+        /* ===== Flashcards ===== */
+        function renderFlashcards() {
+            content.innerHTML = `
+                <div class="stack">
+                    <div id="cardCounter" class="muted"></div>
+
+                    <div class="flashcard-wrap">
+                        <div class="card" id="card">
+                            <div class="face front" id="front"></div>
+                            <div class="face back" id="back"></div>
+                        </div>
+                    </div>
+
+                    <div class="nav">
+                        <button class="btn" onclick="prevCard()">Prev</button>
+                        <button class="btn" onclick="toggleOrder()">Flip Order</button>
+                        <button class="btn" onclick="nextCard()">Next</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById("card").onclick =
+                () => document.getElementById("card").classList.toggle("flip");
+            updateCard();
+        }
+
+        function updateCard() {
+            const card = cards[index];
+
+            if (termFirst) {
+                front.textContent =
+                    card.type === "mc"
+                        ? getLearningQuestion(card)
+                        : card.term;
+
+                back.innerHTML = getLearningContent(card);
+            } else {
+                front.innerHTML = getLearningContent(card);
+
+                back.textContent =
+                    card.type === "mc"
+                        ? getLearningQuestion(card)
+                        : card.term;
+            }
+
+            document.getElementById("cardCounter").textContent =
+                `Card ${index + 1} / ${cards.length}`;
+        }
+
+        function nextCard() { index = (index + 1) % cards.length; updateCard(); }
+        function prevCard() { index = (index - 1 + cards.length) % cards.length; updateCard(); }
+        function toggleOrder() { termFirst = !termFirst; updateCard(); }
+
+        /* ===== Table ===== */
+        function renderTable() {
+            content.innerHTML = `
+                <table class="quizlet-table">
+                    <tr>
+                        <th>#</th>
+                        <th>Term / Question</th>
+                        <th>Definition / Learning Content</th>
+                    </tr>
+                    ${cards.map((card, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${card.type === "mc" ? getLearningQuestion(card) : card.term}</td>
+                            <td>${getLearningContent(card)}</td>
+                        </tr>
+                    `).join("")}
+                </table>
+            `;
+        }
+
+        /* ===== Match Game ===== */
+        let matchTimer, matchTimeLeft, matches = {}, usedDefs = new Set(), graded = false;
+        function renderMatchGame() {
+            matchTimeLeft = cards.length * 5;
+            matches = {}; usedDefs.clear(); graded = false;
+
+            content.innerHTML = `
+                <div class="stack">
+                    <div id="matchProgress" class="muted"></div>
+                    <div>⏱ Time Left: <strong id="matchTime">${formatTime(matchTimeLeft)}</strong></div>
+                    <p id="matchResult"></p>
+                    <div>
+                        <button class="btn" id="matchStartBtn" onclick="startMatch()">Start</button>
+                        <button class="btn" onclick="gradeMatch()">Submit</button>
+                    </div>
+                    <div class="match">
+                        <div class="col" id="termCol"></div>
+                        <div class="col" id="defCol"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startMatch() {
+            const btn = document.getElementById("matchStartBtn");
+            clearInterval(matchTimer);
+
+            graded = false;
+            matches = {};
+            usedDefs.clear();
+            matchTimeLeft = cards.length * 5;
+            matchRunning = true;
+
+            document.getElementById("matchResult").textContent = "";
+
+            btn.textContent = "Running...";
+            btn.disabled = true;
+
+            const matchable = cards.filter(c => c.type === "simple");
+
+            const selected = selectPracticeSetStrict(
+                matchable,
+                "match",
+                14,
+                3
+            );
+            updatePracticeProgress("match", matchable.length);
+
+            const shuffledTerms = shuffleArray(selected);
+            const shuffledDefs = shuffleArray(selected);
+
+            document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+
+            matchTimer = setInterval(() => {
+                matchTimeLeft--;
+                if (matchTimeLeft <= 0) {
+                    matchTimeLeft = 0;
+                    document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+                    gradeMatch();
+                    return;
+                }
+                document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+            }, 1000);
+
+            const termCol = document.getElementById("termCol");
+            const defCol = document.getElementById("defCol");
+            termCol.innerHTML = "";
+            defCol.innerHTML = "";
+
+            shuffledTerms.forEach(c => {
+                const slot = document.createElement("div");
+                slot.className = "match-item match-slot";
+                slot.textContent = c.term;
+
+                // ✅ Undo match on click
+                slot.onclick = () => {
+                    if (graded || !matches[c.term]) return;
+
+                    const def = matches[c.term];
+                    delete matches[c.term];
+                    usedDefs.delete(def);
+                    slot.textContent = c.term;
+
+                    // ✅ Restore the hidden definition
+                    const defEl = document.querySelector(`[data-def="${CSS.escape(def)}"]`);
+                    if (defEl) {
+                        defEl.style.display = "";
+                    }
+                };
+
+                slot.ondragover = e => e.preventDefault();
+
+                slot.ondrop = e => {
+                    if (graded) return;
+                    const def = e.dataTransfer.getData("def");
+                    if (usedDefs.has(def)) return;
+
+                    usedDefs.add(def);
+                    matches[c.term] = def;
+                    slot.textContent = `${c.term} → ${def}`;
+
+                    // ✅ Hide the matched definition
+                    const defEl = document.querySelector(`[data-def="${CSS.escape(def)}"]`);
+                    if (defEl) {
+                        defEl.style.display = "none";
+                    }
+                };
+
+                termCol.appendChild(slot);
+            });
+
+            shuffledDefs.forEach(c => {
+                const d = document.createElement("div");
+                d.className = "match-item";
+                d.textContent = c.def;
+                d.dataset.def = c.def;
+                d.draggable = true;
+                d.ondragstart = e => e.dataTransfer.setData("def", c.def);
+                defCol.appendChild(d);
+            });
+
+            // ✅ store for grading
+            window._currentMatchSet = selected;
+        }
+        function gradeMatch() {
+            if (graded) return;
+            graded = true;
+            clearInterval(matchTimer);
+            let correct = 0;
+            document.querySelectorAll(".match-slot").forEach(s => {
+                const [t, d] = s.textContent.split(" → ");
+                if (!d) return;
+                const ok = window._currentMatchSet.find(c => c.term === t)?.def === d;
+                s.classList.add(ok ? "correct" : "wrong");
+                if (ok) correct++;
+            });
+            document.querySelectorAll("[data-def]").forEach(d => {
+                d.draggable = false;
+                d.classList.add("disabled");
+            });
+            const total = window._currentMatchSet.length;
+            document.getElementById("matchResult").textContent =
+                `Score: ${correct}/${total}`;
+
+            matchRunning = false;
+            document.getElementById("matchStartBtn").textContent = "Start";
+            document.getElementById("matchStartBtn").disabled = false;
+        }
+
+        /* ===== Multiple Choice ===== */
+        let mcTimer;
+        let mcTimeLeft;
+        let mcIdx = 0;
+        let mcAnswers = {};
+        let mcGraded = false;
+        let mcStarted = false;     // NEW
+        let mcQuestions = [];     // NEW (stores fixed options per question)
+
+        // ✅ Quiz running state flags
+        let mcRunning = false;
+        let matchRunning = false;
+
+
+        function renderMCQuiz() {
+            mcIdx = 0;
+            mcStarted = false;
+            mcGraded = false;
+            mcAnswers = {};
+            mcQuestions = [];
+
+            content.innerHTML = `
+                <div class="stack">
+                    <div id="mcProgress" class="muted"></div>
+                    <div id="mcTimerBox">
+                        ⏱ Time Left: <strong id="mcTime"></strong>
+                    </div>
+
+                    <div id="mcArea" class="hidden"></div>
+
+                    <div class="mc-nav hidden" id="mcNav">
+                        <button class="btn" id="mcPrevBtn" onclick="prevMC()">Previous</button>
+                        <button class="btn" id="mcNextBtn" onclick="nextMC()">Next</button>
+                    </div>
+
+                    <div>
+                        <button class="btn" id="mcStartBtn" onclick="startMC()">Start</button>
+                        <button class="btn" onclick="gradeMC()">Submit</button>
+                    </div>
+
+                    <p id="mcResult"></p>
+                </div>
+            `;
+
+
+            mcTimeLeft = cards.length * 7;
+            document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+        }
+
+        function startMC() {
+            const btn = document.getElementById("mcStartBtn");
+            clearInterval(mcTimer);
+
+            // ✅ FULL RESET (IMPORTANT)
+            mcGraded = false;
+            mcStarted = true;
+            mcRunning = true;
+            btn.textContent = "Running...";
+            btn.disabled = true;
+
+            mcAnswers = {};
+            mcQuestions = [];
+            mcIdx = 0;
+            mcTimeLeft = cards.length * 7;
+
+            document.getElementById("mcTimerBox").classList.remove("hidden");
+            document.getElementById("mcArea").classList.remove("hidden");
+            document.getElementById("mcNav").classList.remove("hidden"); // ✅ SHOW Prev/Next
+
+            document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+
+
+            const mcCards = cards.filter(c => c.type === "mc");
+
+            const selected = selectPracticeSetStrict(
+                mcCards,
+                "mc",
+                14,
+                3
+            );
+            updatePracticeProgress("mc", mcCards.length);
+
+            mcQuestions = selected.map(card => {
+                const shuffled = shuffleArray([...card.options]);
+
+                return {
+                    id: card.id,
+                    term: card.question,
+                    options: moveAllOfTheAboveLast(shuffled),
+                    correct: card.correct[0]
+                };
+            });
+
+
+            renderMCQuestion();
+
+            mcTimer = setInterval(() => {
+                mcTimeLeft--;
+
+                if (mcTimeLeft <= 0) {
+                    mcTimeLeft = 0;
+                    document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+                    gradeMC();
+                    return;
+                }
+
+                document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+            }, 1000);
+            updateMCNavButtons();
+        }
+
+        function renderMCQuestion() {
+            if (!mcStarted || !mcQuestions[mcIdx]) return;
+
+            const q = mcQuestions[mcIdx];
+            const area = document.getElementById("mcArea");
+
+            area.innerHTML = `<strong>Question ${mcIdx + 1}/${mcQuestions.length}: ${q.term}</strong>`;
+
+            q.options.forEach(opt => {
+                const c = document.createElement("div");
+                c.className = "choice";
+                c.textContent = opt;
+
+                if (mcAnswers[mcIdx] === opt) {
+                    c.classList.add("selected");
+                }
+
+                c.onclick = () => {
+                    if (mcGraded) return;
+                    mcAnswers[mcIdx] = opt;
+
+                    document.querySelectorAll(".choice").forEach(x =>
+                        x.classList.remove("selected")
+                    );
+                    c.classList.add("selected");
+                };
+
+                area.appendChild(c);
+            });
+            updateMCNavButtons();
+        }
+
+        function nextMC() {
+            if (mcIdx < mcQuestions.length - 1) {
+                mcIdx++;
+                renderMCQuestion();
+            }
+        }
+
+        function prevMC() {
+            if (mcIdx > 0) {
+                mcIdx--;
+                renderMCQuestion();
+            }
+        }
+
+        function gradeMC() {
+            if (mcGraded || !mcStarted) return;
+
+            mcGraded = true;
+            clearInterval(mcTimer);
+
+            let score = 0;
+            const area = document.getElementById("mcArea");
+
+            let html = `
+                <h3>Results</h3>
+                <p><strong>Score: ${score}/${mcQuestions.length}</strong></p>
+                <table class="quizlet-table">
+                <tr>
+                    <th>Question</th>
+                    <th>Correct Answer</th>
+                    <th>Your Answer</th>
+                    <th>Result</th>
+                </tr>
+            `;
+
+            mcQuestions.forEach((q, i) => {
+                const user = mcAnswers[i] || "—";
+                const ok = user === q.correct;
+                if (ok) score++;
+
+                html += `
+                <tr class="${ok ? "correct" : "wrong"}">
+                    <td>${q.term}</td>
+                    <td>${q.correct}</td>
+                    <td>${user}</td>
+                    <td>${ok ? "✅ Correct" : "❌ Wrong"}</td>
+                </tr>
+                `;
+            });
+
+            html += `
+                </table>
+            `;
+
+            area.innerHTML = html;
+
+            mcRunning = false;
+            mcStarted = false;
+
+            document.getElementById("mcStartBtn").textContent = "Start";
+            document.getElementById("mcStartBtn").disabled = false;
+
+            document.getElementById("mcNav").classList.add("hidden"); // ✅ HIDE Prev/Next
+        }    
+    </script>
+
+</body>
+
+</html>
