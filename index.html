@@ -824,10 +824,19 @@
 
             const matchable = cards.filter(c => c.type === "simple");
 
+            // ✅ Determine group size logic
+            const remaining = matchable.length - practiceState.match.seen.size;
+            let batchSize = 4;
+
+            // If this is the final group and only 1 item is left, make it 5
+            if (remaining === 5 || remaining < 4) {
+                batchSize = Math.min(5, matchable.length);
+            }
+
             const selected = selectPracticeSetStrict(
                 matchable,
                 "match",
-                14,
+                batchSize,
                 3
             );
             updatePracticeProgress("match", matchable.length);
