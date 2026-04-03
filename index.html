@@ -40,10 +40,11 @@
 
         /* Header */
         .header {
+            max-width: 1100px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin: 0 auto 50px auto;
         }
 
         .logo {
@@ -186,21 +187,25 @@
             display: flex;
             justify-content: center;
             gap: 12px;
-            flex-wrap: wrap
+            flex-wrap: wrap;
         }
 
         /* Table */
         .quizlet-table {
             width: 100%;
-            border-collapse: collapse
+            border-collapse: collapse;
         }
 
         .quizlet-table tr {
-            border-bottom: 1px solid var(--border)
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quizlet-table th {
+            text-align: left;
         }
 
         .quizlet-table td {
-            padding: 18px
+            padding: 18px;
         }
 
         .quizlet-table td:first-child {
@@ -211,6 +216,34 @@
         .table-scroll {
             width: 100%;
             overflow-x: auto;
+            height: 400px;
+            overflow-y: scroll;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #cfd8e3;
+            border-radius: 8px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #b9c6d6;
+        }
+
+        .sticky-row {
+            position: sticky;
+            top: 0;
+            background: var(--card);
+            z-index: 2;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06), 0 8px 18px rgba(0, 0, 0, 0.10);
+        }
+
+        .sticky-row th {
+            padding: 20px;
         }
 
         .table-scroll table {
@@ -245,16 +278,6 @@
             cursor: not-allowed
         }
 
-        .correct {
-            background: var(--good) !important;
-            color: white
-        }
-
-        .wrong {
-            background: var(--bad) !important;
-            color: white
-        }
-
         /* MC Quiz */
         .mc-question {
             margin-bottom: 20px
@@ -266,20 +289,6 @@
             border-radius: 10px;
             margin: 8px 0;
             cursor: pointer;
-        }
-
-        .choice.selected {
-            outline: 3px solid var(--accent)
-        }
-
-        .choice.correct {
-            background: var(--good);
-            color: white
-        }
-
-        .choice.wrong {
-            background: var(--bad);
-            color: white
         }
 
         .mc-nav {
@@ -294,13 +303,39 @@
         }
 
         #formatInfo {
+            width: 85%;
+            overflow-x: scroll;
             background: var(--surface);
             border-radius: 12px;
+            margin: auto;
         }
+
+
+        #formatInfo pre {
+            min-width: 412px;
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+
 
         @media(max-width:700px) {
             .col {
-                width: 100%
+                width: 100%;
+            }
+
+            #formatInfo pre {
+                width: 100%;
+            }
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 100%;
             }
         }
     </style>
@@ -313,73 +348,75 @@
         <button id="themeBtn" class="theme-toggle">🌙</button>
     </div>
 
-    <div class="section stack">
-        <h3>Upload Study File</h3>
-        <div class="drop-zone" id="dropZone">
-            Drag & Drop any text-based file or click
-            <input type="file" id="fileInput" hidden>
-        </div>
-        <div id="uploadStatus">No file loaded</div>
-
-        <button class="btn" onclick="toggleFormatInfo()">ℹ️ File format help</button>
-
-        <div id="formatInfo" class="section hidden" style="margin-top:12px">
-            <pre id="formatText" style="white-space: pre-wrap; font-family: inherit;">
-                File format guide
-
-                Upload a plain text (.txt) file with one study item per line.
-
-                You can mix flashcards and multiple-choice questions in the same file.
-
-                Flashcards / Matching
-                Use this format for definitions and matching games:
-
-                Term : Definition
-
-                Example:
-                Photosynthesis : Process plants use to make food
-
-                Multiple Choice
-                Use this format for quizzes:
-
-                Question | Option A | Option B* | Option C | Option D
-
-                Example:
-                What is the capital of France? | Paris* | Rome | Berlin | Madrid
-
-                Rules to remember:
-                • Put only one card or question on each line
-                • Add * at the end of the correct answer
-                • Write “All of the above” exactly like that if you use it
-                • Keep “All of the above” as the last option
-                • Don’t split one question across multiple lines
-            </pre>
-
-            <button class="btn" onclick="copyFormatInfo()">📋 Copy instructions</button>
-        </div>
-    </div>
-
-    <div class="section stack">
-        <div class="menu-bar">
-            <div class="menu">
-                <button class="btn" onclick="toggleMenu('learnMenu')">Learn ▾</button>
-                <div id="learnMenu" class="menu-content hidden">
-                    <button onclick="selectFeature('Learning','Flashcards')">Flashcards</button>
-                    <button onclick="selectFeature('Learning','Table')">Term Table</button>
-                </div>
+    <div class="page">
+        <div class="section stack">
+            <h3>Upload Study File</h3>
+            <div class="drop-zone" id="dropZone">
+                Drag & Drop any text-based file or click
+                <input type="file" id="fileInput" hidden>
             </div>
-            <div class="menu">
-                <button class="btn" onclick="toggleMenu('practiceMenu')">Practice ▾</button>
-                <div id="practiceMenu" class="menu-content hidden">
-                    <button onclick="selectFeature('Practice','Match')">Match Game</button>
-                    <button onclick="selectFeature('Practice','MC')">Multiple Choice</button>
-                </div>
+            <div id="uploadStatus">No file loaded</div>
+
+            <button class="btn" onclick="toggleFormatInfo()">ℹ️ File format help</button>
+
+            <div id="formatInfo" class="section hidden" style="margin-top:12px">
+                <pre id="formatText" style="white-space: pre-wrap; font-family: inherit;">
+File format guide
+
+Upload a plain text (.txt) file with one study item per line.
+
+You can mix flashcards and multiple-choice questions in the same file.
+
+Flashcards / Matching
+Use this format for definitions and matching games:
+
+Term : Definition
+
+Example:
+Photosynthesis : Process plants use to make food
+
+Multiple Choice
+Use this format for quizzes:
+
+Question | Option A | Option B* | Option C | Option D
+
+Example:
+What is the capital of France? | Paris* | Rome | Berlin | Madrid
+
+Rules to remember:
+• Put only one card or question on each line
+• Add * at the end of the correct answer
+• Write “All of the above” exactly like that if you use it
+• Keep “All of the above” as the last option
+• Don’t split one question across multiple lines
+                </pre>
+
+                <button class="btn" onclick="copyFormatInfo()">📋 Copy instructions</button>
             </div>
         </div>
 
-        <div class="separator"></div>
-        <h2 id="modeHeading">Upload a file to begin</h2>
-        <div id="content"></div>
+        <div class="section stack">
+            <div class="menu-bar">
+                <div class="menu">
+                    <button class="btn" onclick="toggleMenu('learnMenu')">Learn ▾</button>
+                    <div id="learnMenu" class="menu-content hidden">
+                        <button onclick="selectFeature('Learning','Flashcards')">Flashcards</button>
+                        <button onclick="selectFeature('Learning','Table')">Term Table</button>
+                    </div>
+                </div>
+                <div class="menu">
+                    <button class="btn" onclick="toggleMenu('practiceMenu')">Practice ▾</button>
+                    <div id="practiceMenu" class="menu-content hidden">
+                        <button onclick="selectFeature('Practice','Match')">Match Game</button>
+                        <button onclick="selectFeature('Practice','MC')">Multiple Choice</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="separator"></div>
+            <h2 id="modeHeading">Upload a file to begin</h2>
+            <div id="content"></div>
+        </div>
     </div>
 
     <script>
@@ -776,20 +813,22 @@
         /* ===== Table ===== */
         function renderTable() {
             content.innerHTML = `
-                <table class="quizlet-table">
-                    <tr>
-                        <th>#</th>
-                        <th>Term / Question</th>
-                        <th>Definition / Learning Content</th>
-                    </tr>
-                    ${cards.map((card, i) => `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td>${card.type === "mc" ? getLearningQuestion(card) : card.term}</td>
-                            <td>${getLearningContent(card)}</td>
+                <div class="table-scroll">
+                    <table class="quizlet-table">
+                        <tr class="sticky-row">
+                            <th>Item Number</th>
+                            <th>Term / Question</th>
+                            <th>Definition / Learning Content</th>
                         </tr>
-                    `).join("")}
-                </table>
+                        ${cards.map((card, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${card.type === "mc" ? getLearningQuestion(card) : card.term}</td>
+                                <td>${getLearningContent(card)}</td>
+                            </tr>
+                        `).join("")}
+                    </table>
+                </div>
             `;
         }
 
@@ -935,7 +974,7 @@
                 const [t, d] = s.textContent.split(" → ");
                 if (!d) return;
                 const ok = window._currentMatchSet.find(c => c.term === t)?.def === d;
-                s.classList.add(ok ? "correct" : "wrong");
+                s.innerHTML = `${s.innerHTML}${ok ? "✅" : "❌"}`;
                 if (ok) correct++;
             });
             document.querySelectorAll("[data-def]").forEach(d => {
@@ -1127,13 +1166,13 @@
                 <h3>Results</h3>
                 <p><strong>Score: ${score}/${mcQuestions.length}</strong></p>
                 <div class="table-scroll">
-                <table class="quizlet-table">
-                <tr>
-                    <th>Question</th>
-                    <th>Correct Answer</th>
-                    <th>Your Answer</th>
-                    <th>Result</th>
-                </tr>
+                    <table class="quizlet-table">
+                        <tr class="sticky-row">
+                            <th>Question</th>
+                            <th>Correct Answer</th>
+                            <th>Your Answer</th>
+                            <th>Result</th>
+                        </tr>
             `;
 
             mcQuestions.forEach((q, i) => {
@@ -1141,8 +1180,8 @@
                 const ok = user === q.correct;
 
                 html += `
-                    <tr class="${ok ? "correct" : "wrong"}">
-                        <td>${q.term}</td>
+                    <tr>
+                        <td>${ok ? "✅" : "❌"}${q.term}</td>
                         <td>${q.correct}</td>
                         <td>${user}</td>
                         <td>${ok ? "✅ Correct" : "❌ Wrong"}</td>
