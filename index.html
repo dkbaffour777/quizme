@@ -935,19 +935,41 @@ Rules to remember:
 
                 slot.ondrop = e => {
                     if (graded) return;
+
                     const def = e.dataTransfer.getData("def");
+
+                    // ✅ If this slot already has a definition, restore it first
+                    if (matches[c.term]) {
+                        const oldDef = matches[c.term];
+                        usedDefs.delete(oldDef);
+
+                        const oldDefEl = document.querySelector(
+                            `[data-def="${CSS.escape(oldDef)}"]`
+                        );
+                        if (oldDefEl) {
+                            oldDefEl.style.display = "";
+                        }
+
+                        delete matches[c.term];
+                    }
+
+                    // ✅ Prevent using the same definition twice
                     if (usedDefs.has(def)) return;
 
+                    // ✅ Assign new definition
                     usedDefs.add(def);
                     matches[c.term] = def;
                     slot.textContent = `${c.term} → ${def}`;
 
-                    // ✅ Hide the matched definition
-                    const defEl = document.querySelector(`[data-def="${CSS.escape(def)}"]`);
+                    // ✅ Hide the newly matched definition
+                    const defEl = document.querySelector(
+                        `[data-def="${CSS.escape(def)}"]`
+                    );
                     if (defEl) {
                         defEl.style.display = "none";
                     }
                 };
+
 
                 termCol.appendChild(slot);
             });
