@@ -291,6 +291,10 @@
             cursor: pointer;
         }
 
+        .choice.selected {
+            outline: 3px solid var(--accent)
+        }
+
         .mc-nav {
             display: flex;
             justify-content: space-between;
@@ -357,9 +361,10 @@
             </div>
             <div id="uploadStatus">No file loaded</div>
 
-            <button class="btn" onclick="toggleFormatInfo()">ℹ️ File format help</button>
+            <button class="btn" onclick="toggleFormatInfo()">ℹ️ File format Guide</button>
 
-            <div id="formatInfo" class="section hidden" style="margin-top:12px">
+            <div id="formatInfo" class="section table-scroll hidden"
+                style="margin-top:12px; height: 550px; overflow-y: hidden;">
                 <pre id="formatText" style="white-space: pre-wrap; font-family: inherit;">
 File format guide
 
