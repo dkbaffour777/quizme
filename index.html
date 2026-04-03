@@ -1097,11 +1097,18 @@
             clearInterval(mcTimer);
 
             let score = 0;
-            const area = document.getElementById("mcArea");
 
+            // ✅ First: compute score
+            mcQuestions.forEach((q, i) => {
+                const user = mcAnswers[i];
+                if (user === q.correct) score++;
+            });
+
+            // ✅ Then: build results UI
             let html = `
                 <h3>Results</h3>
                 <p><strong>Score: ${score}/${mcQuestions.length}</strong></p>
+                <div class="table-scroll">
                 <table class="quizlet-table">
                 <tr>
                     <th>Question</th>
@@ -1114,32 +1121,32 @@
             mcQuestions.forEach((q, i) => {
                 const user = mcAnswers[i] || "—";
                 const ok = user === q.correct;
-                if (ok) score++;
 
                 html += `
-                <tr class="${ok ? "correct" : "wrong"}">
-                    <td>${q.term}</td>
-                    <td>${q.correct}</td>
-                    <td>${user}</td>
-                    <td>${ok ? "✅ Correct" : "❌ Wrong"}</td>
-                </tr>
-                `;
+                    <tr class="${ok ? "correct" : "wrong"}">
+                        <td>${q.term}</td>
+                        <td>${q.correct}</td>
+                        <td>${user}</td>
+                        <td>${ok ? "✅ Correct" : "❌ Wrong"}</td>
+                    </tr>
+                    `;
             });
 
             html += `
-                </table>
-            `;
+                    </table>
+                    </div>
+                `;
 
-            area.innerHTML = html;
+            document.getElementById("mcArea").innerHTML = html;
 
             mcRunning = false;
             mcStarted = false;
 
             document.getElementById("mcStartBtn").textContent = "Start";
             document.getElementById("mcStartBtn").disabled = false;
+            document.getElementById("mcNav").classList.add("hidden");
+        }
 
-            document.getElementById("mcNav").classList.add("hidden"); // ✅ HIDE Prev/Next
-        }    
     </script>
 
 </body>
