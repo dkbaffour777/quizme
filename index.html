@@ -840,7 +840,6 @@ Rules to remember:
         /* ===== Match Game ===== */
         let matchTimer, matchTimeLeft, matches = {}, usedDefs = new Set(), graded = false;
         function renderMatchGame() {
-            matchTimeLeft = cards.length * 5;
             matches = {}; usedDefs.clear(); graded = false;
 
             content.innerHTML = `
@@ -867,7 +866,6 @@ Rules to remember:
             graded = false;
             matches = {};
             usedDefs.clear();
-            matchTimeLeft = cards.length * 5;
             matchRunning = true;
 
             document.getElementById("matchResult").textContent = "";
@@ -877,11 +875,10 @@ Rules to remember:
 
             const matchable = cards.filter(c => c.type === "simple");
 
-            // ✅ Determine group size logic
+            // ✅ Determine group size
             const remaining = matchable.length - practiceState.match.seen.size;
             let batchSize = 4;
 
-            // If this is the final group and only 1 item is left, make it 5
             if (remaining === 5 || remaining < 4) {
                 batchSize = Math.min(5, matchable.length);
             }
@@ -892,7 +889,13 @@ Rules to remember:
                 batchSize,
                 3
             );
+
+            // ✅ FIX: timer depends on session size
+            matchTimeLeft = selected.length * 7;
+            document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+
             updatePracticeProgress("match", matchable.length);
+
 
             const shuffledTerms = shuffleArray(selected);
             const shuffledDefs = shuffleArray(selected);
@@ -1061,8 +1064,6 @@ Rules to remember:
                 </div>
             `;
 
-
-            mcTimeLeft = cards.length * 7;
             document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
         }
 
@@ -1070,24 +1071,16 @@ Rules to remember:
             const btn = document.getElementById("mcStartBtn");
             clearInterval(mcTimer);
 
-            // ✅ FULL RESET (IMPORTANT)
             mcGraded = false;
             mcStarted = true;
             mcRunning = true;
+
             btn.textContent = "Running...";
             btn.disabled = true;
 
             mcAnswers = {};
             mcQuestions = [];
             mcIdx = 0;
-            mcTimeLeft = cards.length * 7;
-
-            document.getElementById("mcTimerBox").classList.remove("hidden");
-            document.getElementById("mcArea").classList.remove("hidden");
-            document.getElementById("mcNav").classList.remove("hidden"); // ✅ SHOW Prev/Next
-
-            document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
-
 
             const mcCards = cards.filter(c => c.type === "mc");
 
@@ -1097,11 +1090,15 @@ Rules to remember:
                 14,
                 3
             );
+
+            // ✅ FIX: timer depends on session size
+            mcTimeLeft = selected.length * 6;
+            document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+
             updatePracticeProgress("mc", mcCards.length);
 
             mcQuestions = selected.map(card => {
                 const shuffled = shuffleArray([...card.options]);
-
                 return {
                     id: card.id,
                     term: card.question,
@@ -1110,6 +1107,9 @@ Rules to remember:
                 };
             });
 
+            document.getElementById("mcTimerBox").classList.remove("hidden");
+            document.getElementById("mcArea").classList.remove("hidden");
+            document.getElementById("mcNav").classList.remove("hidden");
 
             renderMCQuestion();
 
