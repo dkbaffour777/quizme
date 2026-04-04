@@ -630,6 +630,46 @@ Rules to remember:
             match: []
         };
 
+        function estimateReadingSeconds(text) {
+            const words = text.trim().split(/\s+/).length;
+            return Math.ceil((words / 200) * 60);
+        }
+
+        function calculateMCTime(questions) {
+            const BASE_TIME = 60;      // 1 minute minimum per question
+            const READING_WEIGHT = 0.5;
+            const MAX_PER_QUESTION = 120;
+
+            return questions.reduce((total, q) => {
+                const reading = estimateReadingSeconds(q.question);
+                const perQuestion =
+                    BASE_TIME + reading * READING_WEIGHT;
+
+                return total + Math.min(perQuestion, MAX_PER_QUESTION);
+            }, 0);
+        }
+
+        function calculateMatchTime(pairs) {
+            const BASE_TIME = 30;          // per pair
+            const READING_WEIGHT = 0.4;
+            const MAX_PER_PAIR = 75;
+
+            return pairs.reduce((total, p) => {
+                const reading =
+                    estimateReadingSeconds(p.term) +
+                    estimateReadingSeconds(p.def);
+
+                const perPair =
+                    BASE_TIME + reading * READING_WEIGHT;
+
+                return total + Math.min(perPair, MAX_PER_PAIR);
+            }, 0);
+        }
+
+        const quizSettings = {
+            timed: true
+        };
+
         function updatePracticeProgress(modeKey, totalCount) {
             const seenCount = practiceState[modeKey].seen.size;
             const el = document.getElementById(
@@ -850,7 +890,7 @@ Rules to remember:
             content.innerHTML = `
                 <div class="stack">
                     <div id="matchProgress" class="muted"></div>
-                    <div>⏱ Time Left: <strong id="matchTime">${formatTime(matchTimeLeft)}</strong></div>
+                    <div>⏱ Time Left: <strong id="matchTime">—</strong></div>
                     <p id="matchResult"></p>
                     <div>
                         <button class="btn" id="matchStartBtn" onclick="startMatch()">Start</button>
@@ -897,9 +937,14 @@ Rules to remember:
 
             activePracticeSessions.match = selected.map(c => c.id);
 
-            // ✅ FIX: timer depends on session size
-            matchTimeLeft = selected.length * 7;
-            document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+            if (!quizSettings.timed) {
+                matchTimeLeft = null;
+            } else {
+                matchTimeLeft = calculateMatchTime(selected);
+            }
+
+            document.getElementById("matchTime").textContent =
+                matchTimeLeft !== null ? formatTime(matchTimeLeft) : "∞";
 
             const shuffledTerms = shuffleArray(selected);
             const shuffledDefs = shuffleArray(selected);
@@ -907,10 +952,12 @@ Rules to remember:
             document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
 
             matchTimer = setInterval(() => {
+                if (matchTimeLeft === null) return; // ✅ untimed mode
+
                 matchTimeLeft--;
                 if (matchTimeLeft <= 0) {
                     matchTimeLeft = 0;
-                    document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
+                    document.getElementById("matchTime").textContent = "00:00";
                     gradeMatch();
                     return;
                 }
@@ -1108,9 +1155,14 @@ Rules to remember:
 
             activePracticeSessions.mc = selected.map(c => c.id);
 
-            // ✅ FIX: timer depends on session size
-            mcTimeLeft = selected.length * 6;
-            document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+            if (!quizSettings.timed) {
+                mcTimeLeft = null;
+            } else {
+                mcTimeLeft = calculateMCTime(selected);
+            }
+
+            document.getElementById("mcTime").textContent =
+                mcTimeLeft !== null ? formatTime(mcTimeLeft) : "∞";
 
             mcQuestions = selected.map(card => {
                 const shuffled = shuffleArray([...card.options]);
@@ -1129,18 +1181,17 @@ Rules to remember:
             renderMCQuestion();
 
             mcTimer = setInterval(() => {
-                mcTimeLeft--;
+                if (mcTimeLeft === null) return; // ✅ untimed mode
 
+                mcTimeLeft--;
                 if (mcTimeLeft <= 0) {
                     mcTimeLeft = 0;
-                    document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
+                    document.getElementById("mcTime").textContent = "00:00";
                     gradeMC();
                     return;
                 }
-
                 document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
             }, 1000);
-            updateMCNavButtons();
         }
 
         function renderMCQuestion() {
