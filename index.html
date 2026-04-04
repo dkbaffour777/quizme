@@ -625,6 +625,11 @@ Rules to remember:
             }
         };
 
+        let activePracticeSessions = {
+            mc: [],
+            match: []
+        };
+
         function updatePracticeProgress(modeKey, totalCount) {
             const seenCount = practiceState[modeKey].seen.size;
             const el = document.getElementById(
@@ -653,6 +658,8 @@ Rules to remember:
             mcAnswers = {};
             mcQuestions = [];
             mcTimeLeft = 0;
+
+            activePracticeSessions.mc = [];
         }
 
         function resetMatch() {
@@ -664,6 +671,8 @@ Rules to remember:
             matches = {};
             usedDefs.clear();
             matchTimeLeft = 0;
+
+            activePracticeSessions.match = [];
         }
 
         function shuffleArray(arr) {
@@ -723,10 +732,6 @@ Rules to remember:
             }
 
             const finalSet = selection.slice(0, limit);
-
-            // ✅ Update tracking
-            finalSet.forEach(c => state.seen.add(c.id));
-            state.previous = finalSet.map(c => c.id);
 
             return finalSet;
         }
@@ -890,12 +895,11 @@ Rules to remember:
                 3
             );
 
+            activePracticeSessions.match = selected.map(c => c.id);
+
             // ✅ FIX: timer depends on session size
             matchTimeLeft = selected.length * 7;
             document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
-
-            updatePracticeProgress("match", matchable.length);
-
 
             const shuffledTerms = shuffleArray(selected);
             const shuffledDefs = shuffleArray(selected);
@@ -1018,6 +1022,17 @@ Rules to remember:
             matchRunning = false;
             document.getElementById("matchStartBtn").textContent = "Start";
             document.getElementById("matchStartBtn").disabled = false;
+
+            const state = practiceState.match;
+
+            // ✅ Commit coverage ONLY now
+            activePracticeSessions.match.forEach(id => state.seen.add(id));
+
+            // ✅ Track previous session for overlap control
+            state.previous = activePracticeSessions.match.slice();
+            activePracticeSessions.match = [];
+
+            updatePracticeProgress("match", cards.filter(c => c.type === "simple").length);
         }
 
         /* ===== Multiple Choice ===== */
@@ -1091,11 +1106,11 @@ Rules to remember:
                 3
             );
 
+            activePracticeSessions.mc = selected.map(c => c.id);
+
             // ✅ FIX: timer depends on session size
             mcTimeLeft = selected.length * 6;
             document.getElementById("mcTime").textContent = formatTime(mcTimeLeft);
-
-            updatePracticeProgress("mc", mcCards.length);
 
             mcQuestions = selected.map(card => {
                 const shuffled = shuffleArray([...card.options]);
@@ -1188,6 +1203,15 @@ Rules to remember:
                 if (user === q.correct) score++;
             });
 
+            const state = practiceState.mc;
+
+            // ✅ Commit coverage ONLY now
+            activePracticeSessions.mc.forEach(id => state.seen.add(id));
+
+            // ✅ Track previous session for overlap control
+            state.previous = activePracticeSessions.mc.slice();
+            activePracticeSessions.mc = [];
+
             // ✅ Then: build results UI
             let html = `
                 <h3>Results</h3>
@@ -1229,6 +1253,8 @@ Rules to remember:
             document.getElementById("mcStartBtn").textContent = "Start";
             document.getElementById("mcStartBtn").disabled = false;
             document.getElementById("mcNav").classList.add("hidden");
+
+            updatePracticeProgress("mc", cards.filter(c => c.type === "mc").length);
         }
 
     </script>
