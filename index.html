@@ -636,25 +636,27 @@ Rules to remember:
         }
 
         function calculateMCTime(questions) {
-            const BASE_TIME = 60;      // 1 minute minimum per question
+            const BASE_TIME = 60;
             const READING_WEIGHT = 0.5;
             const MAX_PER_QUESTION = 120;
 
-            return questions.reduce((total, q) => {
+            const total = questions.reduce((sum, q) => {
                 const reading = estimateReadingSeconds(q.question);
                 const perQuestion =
                     BASE_TIME + reading * READING_WEIGHT;
 
-                return total + Math.min(perQuestion, MAX_PER_QUESTION);
+                return sum + Math.min(perQuestion, MAX_PER_QUESTION);
             }, 0);
+
+            return Math.ceil(total); // ✅ ensure integer seconds
         }
 
         function calculateMatchTime(pairs) {
-            const BASE_TIME = 30;          // per pair
+            const BASE_TIME = 30;
             const READING_WEIGHT = 0.4;
             const MAX_PER_PAIR = 75;
 
-            return pairs.reduce((total, p) => {
+            const total = pairs.reduce((sum, p) => {
                 const reading =
                     estimateReadingSeconds(p.term) +
                     estimateReadingSeconds(p.def);
@@ -662,8 +664,10 @@ Rules to remember:
                 const perPair =
                     BASE_TIME + reading * READING_WEIGHT;
 
-                return total + Math.min(perPair, MAX_PER_PAIR);
+                return sum + Math.min(perPair, MAX_PER_PAIR);
             }, 0);
+
+            return Math.ceil(total); // ✅ ensure integer seconds
         }
 
         const quizSettings = {
@@ -682,8 +686,11 @@ Rules to remember:
         }
 
         function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
+            const totalSeconds = Math.max(0, Math.floor(seconds)); // ✅ force integer
+
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+
             return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
         }
 
