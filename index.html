@@ -342,6 +342,60 @@
                 max-width: 100%;
             }
         }
+
+        /* ===== Practice Settings (Modern Style) ===== */
+
+        .practice-settings {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 16px 18px;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .practice-settings label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            gap: 12px;
+        }
+
+        .practice-settings input[type="number"] {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 10px;
+            width: 70px;
+            text-align: center;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .practice-settings input[type="number"]:focus {
+            border-color: var(--accent);
+        }
+
+        /* ✅ Remove number input arrows (ALL browsers) */
+        .practice-settings input[type="number"]::-webkit-inner-spin-button,
+        .practice-settings input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .practice-settings input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Checkbox alignment */
+        .practice-settings .toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 
@@ -422,9 +476,37 @@ Rules to remember:
 
             <div class="separator"></div>
 
-            <div class="stack muted" style="flex-direction: row; align-items: center; gap: 8px;">
-                <input type="checkbox" id="timedToggle" checked onchange="quizSettings.timed = this.checked" />
-                <label for="timedToggle">Timed practice</label>
+            <div class="practice-settings muted">
+                <div class="toggle">
+                    <input type="checkbox" id="timedToggle" checked onchange="quizSettings.timed = this.checked" />
+                    <label for="timedToggle">Timed practice</label>
+                </div>
+
+                <p class="muted" style="font-size: 0.8rem;">
+                    Minimum session size is 4 to maintain effective practice.
+                </p>
+
+                <label>
+                    Multiple choice questions per session
+                    <input type="number" min="4" step="1" value="14" onchange="
+                        const maxAvailable = cards.filter(c => c.type === 'mc').length;
+                        quizSettings.mcLimit = Math.max(4, Math.min(Number(this.value), maxAvailable));
+                        this.value = quizSettings.mcLimit;
+                    " />
+                </label>
+
+                <label>
+                    Match pairs per session
+                    <input type="number" min="4" step="1" value="4" onchange="
+                        const max_available = cards.filter(c => c.type === 'simple').length;
+                        quizSettings.matchLimit = Math.max(4, Math.min(Number(this.value), max_available));
+                        this.value = quizSettings.matchLimit;
+                    " />
+                </label>
+
+                <p class="muted" style="font-size: 0.8rem;">
+                    Session size is automatically adjusted if fewer items remain.
+                </p>
             </div>
 
             <h2 id="modeHeading">Upload a file to begin</h2>
@@ -679,7 +761,9 @@ Rules to remember:
         }
 
         const quizSettings = {
-            timed: true
+            timed: true,
+            mcLimit: 14,
+            matchLimit: 4
         };
 
         function updatePracticeProgress(modeKey, totalCount) {
@@ -935,19 +1019,18 @@ Rules to remember:
 
             const matchable = cards.filter(c => c.type === "simple");
 
-            // ✅ Determine group size
-            const remaining = matchable.length - practiceState.match.seen.size;
-            let batchSize = 4;
+            const matchLimit = Math.max(4, quizSettings.matchLimit);
 
-            if (remaining === 5 || remaining < 4) {
-                batchSize = Math.min(5, matchable.length);
-            }
+            const batchSize = Math.min(
+                matchLimit,
+                matchable.length
+            );
 
             const selected = selectPracticeSetStrict(
                 matchable,
                 "match",
                 batchSize,
-                3
+                2
             );
 
             activePracticeSessions.match = selected.map(c => c.id);
@@ -963,8 +1046,6 @@ Rules to remember:
 
             const shuffledTerms = shuffleArray(selected);
             const shuffledDefs = shuffleArray(selected);
-
-            document.getElementById("matchTime").textContent = formatTime(matchTimeLeft);
 
             matchTimer = setInterval(() => {
                 if (matchTimeLeft === null) return; // ✅ untimed mode
@@ -1161,11 +1242,13 @@ Rules to remember:
 
             const mcCards = cards.filter(c => c.type === "mc");
 
+            const mcLimit = Math.max(4, quizSettings.mcLimit);
+
             const selected = selectPracticeSetStrict(
                 mcCards,
                 "mc",
-                14,
-                3
+                mcLimit,
+                Math.min(3, Math.floor(mcLimit / 3))
             );
 
             activePracticeSessions.mc = selected.map(c => c.id);
