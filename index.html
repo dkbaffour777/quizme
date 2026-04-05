@@ -400,6 +400,8 @@ Rules to remember:
             </div>
         </div>
 
+
+
         <div class="section stack">
             <div class="menu-bar">
                 <div class="menu">
@@ -419,6 +421,12 @@ Rules to remember:
             </div>
 
             <div class="separator"></div>
+
+            <div class="stack muted" style="flex-direction: row; align-items: center; gap: 8px;">
+                <input type="checkbox" id="timedToggle" checked onchange="quizSettings.timed = this.checked" />
+                <label for="timedToggle">Timed practice</label>
+            </div>
+
             <h2 id="modeHeading">Upload a file to begin</h2>
             <div id="content"></div>
         </div>
